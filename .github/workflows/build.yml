@@ -1,0 +1,53 @@
+name: Build Theos Tweak
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          brew update
+          brew install ldid dpkg make xz
+
+      - name: Install Theos
+        run: |
+          echo "THEOS=$GITHUB_WORKSPACE/theos" >> $GITHUB_ENV
+          git clone --recursive https://github.com/theos/theos.git "$GITHUB_WORKSPACE/theos"
+          "$GITHUB_WORKSPACE/theos/bin/install-sdk" latest
+
+      - name: Build package
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.package_scheme }}" = "rootful" ]; then
+            make clean package FINALPACKAGE=1
+          else
+            make clean package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
+          fi
+
+      - name: List build outputs
+        run: |
+          echo "Packages:"
+          find packages -type f || true
+
+          echo "Dylibs:"
+          find .theos -name "*.dylib" -type f || true
+
+      - name: Upload deb and dylib
+        uses: actions/upload-artifact@v4
+        with:
+          name: theos-build-output
+          path: |
+            packages/*.deb
+            .theos/obj/**/*.dylib
+          if-no-files-found: warn
