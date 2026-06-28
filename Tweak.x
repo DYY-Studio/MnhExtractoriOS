@@ -116,7 +116,7 @@
 }
 
 - (void)showExtractionAlert:(NSUInteger)bookCount {
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"MnhDumper" 
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"ReaderSonyDumper" 
                                                                    message:[NSString stringWithFormat:@"Extract %lu books?", bookCount] 
                                                             preferredStyle:UIAlertControllerStyleAlert];
     
