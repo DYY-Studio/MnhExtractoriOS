@@ -2,7 +2,11 @@
 #import <UIKit/UIKit.h>
 #import <CoreData/CoreData.h>
 
-NS_ASSUME_NONNULL_BEGIN
+#import "ZipArchive/SSZipArchive/SSZipArchive.h"
+
+#define kUnicodeCompactColon @"\u2236"
+#define kUnicodeDivisionSlash @"\u2215"
+#define TLog(fmt, ...) NSLog((@"[ReaderSonyDumper] " fmt), ##__VA_ARGS__)
 
 @interface ContentExtractor : NSObject {
 @private
@@ -56,20 +60,20 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)parser:(NSXMLParser *)parser
 didStartElement:(NSString *)elementName
-  namespaceURI:(nullable NSString *)namespaceURI
- qualifiedName:(nullable NSString *)qName
+  namespaceURI:(NSString *)namespaceURI
+ qualifiedName:(NSString *)qName
     attributes:(NSDictionary<NSString *, NSString *> *)attributeDict;
 
 - (void)closeBook;
 - (void)dealloc;
 
 - (NSInteger)getElementCount;
-- (nullable NSArray *)getElementsWithName:(NSString *)name;
-- (nullable id)getElementWithName:(NSString *)name;
-- (nullable NSString *)getElementValueWithName:(NSString *)name;
-- (nullable id)createElement:(id)element;
-- (nullable id)getElementByIndex:(NSInteger)index;
-- (nullable NSArray *)getElementsAll;
+- (NSArray *)getElementsWithName:(NSString *)name;
+- (id)getElementWithName:(NSString *)name;
+- (NSString *)getElementValueWithName:(NSString *)name;
+- (id)createElement:(id)element;
+- (id)getElementByIndex:(NSInteger)index;
+- (NSArray *)getElementsAll;
 
 - (BOOL)isReflow;
 - (BOOL)isFixed;
@@ -78,23 +82,23 @@ didStartElement:(NSString *)elementName
 - (BOOL)isWebtoonEnabled;
 - (BOOL)isScrolled;
 
-- (nullable NSString *)getRenditionOrientation;
-- (nullable NSString *)getRenditionSpread;
+- (NSString *)getRenditionOrientation;
+- (NSString *)getRenditionSpread;
 
-- (nullable NSString *)getTitle;
-- (nullable NSString *)getAuthor;
-- (nullable id)getCoverImage;
+- (NSString *)getTitle;
+- (NSString *)getAuthor;
+- (id)getCoverImage;
 
 - (int)getTotalPageCount;
 
-- (nullable id)processWebtoonCoverImageData:(NSData *)data;
+- (id)processWebtoonCoverImageData:(NSData *)data;
 
-- (nullable NSString *)getOpf;
-- (nullable NSString *)getOpf:(id)arg;
-- (nullable NSString *)getOpfFilePath;
+- (NSString *)getOpf;
+- (NSString *)getOpf:(id)arg;
+- (NSString *)getOpfFilePath;
 
-- (nullable NSString *)getText:(NSString *)path;
-- (nullable NSData *)getData:(NSString *)path;
+- (NSString *)getText:(NSString *)path;
+- (NSData *)getData:(NSString *)path;
 
 @end
 
@@ -233,4 +237,29 @@ forRowAtIndexPath:(NSIndexPath *)indexPath;
 }
 @end
 
-NS_ASSUME_NONNULL_END
+@interface ExportManager : 	NSObject <UIDocumentPickerDelegate>
+@property (nonatomic, strong) NSString *currentTempDir;
+@property (nonatomic, strong) UIWindow *floatingWindow;
+@property (atomic, assign) BOOL canceled;
++ (instancetype)shared;
++ (id)getRootViewController;
++ (id)getKeyWindow;
+- (void)showExtractionAlert:(NSUInteger)bookCount;
+- (void)showFailedAlert;
+- (NSString *)extractBook:(Books *)bookData totalProgress:(float)totalProgress singlePercent:(float)singlePercent;
+- (void)startDumpWithBooks:(NSArray<Books *>*)books;
+- (void)presentFolderPickerWithTempDir;
+@end
+
+@interface ExtractionUIHandler : NSObject
+@property (nonatomic, strong) UIView *overlayView;
+@property (nonatomic, strong) UILabel *titleLabel;
+@property (nonatomic, strong) UIProgressView *progressView;
+@property (nonatomic, strong) UILabel *statusLabel;
+@property (nonatomic, strong) UIProgressView *subProgressView;
+@property (nonatomic, strong) UILabel *subStatusLabel;
+
++ (instancetype)sharedHandler;
+- (void)showOverlayAndStartTask;
+- (void)dismissAndReset;
+@end
