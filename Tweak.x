@@ -8,15 +8,6 @@
 typedef void (*MSHookMessageEx_t)(Class _class, SEL message, IMP hook, IMP *old);
 static MSHookMessageEx_t MSHookMessageEx_p = NULL;
 
-typedef NSData *(*MetaParser_getData__t)(id self, SEL _cmd, NSString *path);
-static MetaParser_getData__t orig_MetaParser_getData_ = NULL;
-static NSData *hook_MetaParser_getData_(id self, SEL _cmd, NSString *path){
-	NSData* data = orig_MetaParser_getData_(self, _cmd, path);
-
-	TLog(@"%@, %@", path, data);
-	return data;
-}
-
 %hook SRContentSelectionViewController
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
 	NSInteger originalCount = %orig;
@@ -35,18 +26,14 @@ static NSData *hook_MetaParser_getData_(id self, SEL _cmd, NSString *path){
         static NSString *CellIdentifier = @"BookDumpMenuCell";
         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
         if (!cell) {
-            // 使用标准样式，可以带图标和主标题
             cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
         }
         
-        // 配置你的 Tweak 按钮样式，使其看起来与原 App 融为一体
         cell.textLabel.text = @"Decrypt Selected";
-        cell.textLabel.textColor = [UIColor systemBlueColor]; // 也可以使用原 App 的品牌色
+        cell.textLabel.textColor = [UIColor systemBlueColor];
         
         return cell;
     }
-    
-    // 否则，返回原 App 的正常 Cell
     return %orig;
 }
 
@@ -118,14 +105,4 @@ forRowAtIndexPath:(NSIndexPath *)indexPath {
         TLog(@"%@", @"Cannot find MSHookMessageEx");
         return;
     }
-
-	Class metaParser = NSClassFromString(@"MetaParser");
-	if (metaParser) {
-		MSHookMessageEx_p(
-			metaParser,
-			@selector(getData:),
-			(IMP)hook_MetaParser_getData_,
-			(IMP*)&orig_MetaParser_getData_
-		);
-	}
 }
