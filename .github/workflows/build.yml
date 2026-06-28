@@ -25,7 +25,11 @@ jobs:
         run: |
           echo "THEOS=$GITHUB_WORKSPACE/theos" >> $GITHUB_ENV
           git clone --recursive https://github.com/theos/theos.git "$GITHUB_WORKSPACE/theos"
-          "$GITHUB_WORKSPACE/theos/bin/install-sdk" latest
+
+          mkdir -p "$GITHUB_WORKSPACE/theos/sdks"
+          curl -L https://github.com/theos/sdks/archive/refs/heads/master.zip -o /tmp/theos-sdks.zip
+          unzip -q /tmp/theos-sdks.zip -d /tmp/theos-sdks
+          cp -R /tmp/theos-sdks/sdks-master/*.sdk "$GITHUB_WORKSPACE/theos/sdks/"
 
       - name: Build package
         run: |
